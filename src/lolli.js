@@ -9,18 +9,15 @@ let year;
 let country;
 let rate;
 
-function preload() {
-  // load the csv file containing the unemployment data
-  unemploymentData = loadTable("assets/employment.csv", "csv", "header");
-}
 
 function setup() {
   // create a canvas to display the chart
-  createCanvas(800, 600);
+  createCanvas(400, 600);
+  
 
   // specify the year and country for which you want to display the chart
   year = "2020";
-  country = "FRA";
+  country = "GRC";
   rate = "U_RATE";
 
   // extract the relevant data from the dataset
@@ -29,12 +26,18 @@ function setup() {
   foreignMenData = extractData(unemploymentData, "FB", "MEN", year, country, rate);
   foreignWomenData = extractData(unemploymentData, "FB", "WMN", year, country, rate);
 
-  // display the bar chart
 }
 
+
+
 function draw(){
-  displayBarChart(nativeMenData, nativeWomenData, foreignMenData, foreignWomenData);
+  
+  displayLollipopChart(nativeMenData, foreignMenData, nativeWomenData, foreignWomenData);
+
+
 }
+
+
 
 function extractData(data, birth, gender, year, country, rate) {
   // extract the rows from the data table that match the specified birth, gender, year, and country
@@ -46,24 +49,177 @@ function extractData(data, birth, gender, year, country, rate) {
   return unemploymentRates;
 }
 
-function displayBarChart(nativeMenData, nativeWomenData, foreignMenData, foreignWomenData) {
 
-  // display the bars for each group
-  displayBar(50, nativeMenData, "Native Men");
-  displayBar(150, nativeWomenData, "Native Women");
-  displayBar(250, foreignMenData, "Foreign Men");
-  displayBar(350, foreignWomenData, "Foreign Women");
+
+function displayLollipopChart(nativeMen, foreignMen, nativeWomen, foreignWomen) {
+
+    background(255); // set the background color to white
+
+    
+    let margin = 100;
+
+    let x = margin + 40;
+    let x2 = margin + 100;
+    let y = height;
+    let barWidth = 0;
+    let barHeight = 0;
+
+    let colorNative = color(255, 40, 40); //red
+    let colorForeign = color(255, 222, 20);  //yellow
+
+    let maxValue=max([nativeMen,nativeWomen,foreignMen,foreignWomen]) * 10;
+
+
+    
+    strokeWeight(1);
+		stroke(0);
+    // X axis
+    line(margin, height - margin, margin + 150, height - margin);
+
+    // Y axis
+    line(margin, height - margin - ( maxValue + 70 ), margin, height - margin);
+
+	
+
+    //_______________________________MEN_____________________________________
+  
+
+    // Display lollipop for native men in red
+    barHeight = nativeMen * 10 + margin;
+    stroke(255);
+    displayLollipop(x, y, barWidth, barHeight, colorNative);
+    let firstLollipopY = y - barHeight;
+
+  
+    // Display lollipop for foreign men in yellow
+    barHeight = foreignMen * 10 + margin;
+    displayLollipop(x, y, barWidth, barHeight, colorForeign);
+    let secondLollipopY = y - barHeight;
+
+    // Connect the two lollipops with a gradient stroke
+    let startColor = colorNative;
+    let endColor = colorForeign;
+    let gradientSteps = 50;
+    let gradientIncrement = (secondLollipopY - firstLollipopY) / gradientSteps;
+
+    strokeWeight(3);
+    
+    for (let i = 0; i < gradientSteps; i++) {
+    let gradientY = firstLollipopY + i * gradientIncrement;
+    let gradientColor = lerpColor(startColor, endColor, i / gradientSteps);
+    stroke(gradientColor);
+    line(x + barWidth / 2, gradientY, x + barWidth / 2, gradientY + gradientIncrement);
+    }
+    
+
+
+    //____________________________WOMEN_________________________________________
+
+
+    // Display lollipop for native women in red
+    barHeight = nativeWomen * 10 + margin;
+    stroke(255);
+    displayLollipop(x2, y, barWidth, barHeight, colorNative);
+    firstLollipopY = y - barHeight ;
+
+   
+    // Display lollipop for foreign women in yellow
+    barHeight = foreignWomen * 10 + margin;
+    displayLollipop(x2, y, barWidth, barHeight, colorForeign);
+    secondLollipopY = y - barHeight;
+
+
+    // Connect the two lollipops with a gradient stroke
+    
+    startColor = colorNative;
+    endColor = colorForeign;
+    gradientSteps = 50;
+    gradientIncrement = (secondLollipopY - firstLollipopY) / gradientSteps;
+
+    strokeWeight(3);
+    for (let i = 0; i < gradientSteps; i++) {
+    gradientY = firstLollipopY + i * gradientIncrement;
+    gradientColor = lerpColor(startColor, endColor, i / gradientSteps);
+    stroke(gradientColor);
+    line(x2 + barWidth / 2, gradientY, x2 + barWidth / 2, gradientY + gradientIncrement);
+    }
+
+
+
+    //______________________________LEGEND_________________________________________
+
+
+    //strokeweight(1);
+
+    // Draw legend in top right corner
+    let legendX = width - margin - 40;
+    let legendY = height - margin - ( maxValue + 70 );
+    let legendSize = 15;
+
+    // Draw legend for native population
+    fill(colorForeign);
+    //stroke(255);
+    rect(legendX, legendY, legendSize, legendSize);
+    fill(0);
+    textSize(12);
+    textAlign(LEFT);
+    strokeWeight(0);
+    text("Foreign Born", legendX + legendSize + 10, legendY + legendSize);
+
+    // Draw legend for foreign population
+    fill(colorNative);
+    stroke(255);
+    rect(legendX, legendY + 30, legendSize, legendSize);
+    fill(0, 0, 0);
+    textSize(12);
+    strokeWeight(0);
+    text("Native Born", legendX + legendSize + 10, legendY + legendSize + 30);
+
+
+
+
+    //______________________________SCALES________________________________
+
+
+
+    fill(0, 0, 0);
+    //nostroke();
+    strokeWeight(0);
+    textAlign(CENTER);
+    text("MEN", x ,height - margin + 20);
+    text("WOMEN", x2, height - margin + 20);
+
+
+
+    for (var k = 0; k <= maxValue + 30; k = k + 20){
+      textAlign(CENTER);
+      text(k / 10, margin - 10, height - margin - k);
+    }
+    textAlign(RIGHT);
+    text("% \nUnemployement", margin - 5, height - margin - k - 25);
+
+
+
+
+
 }
+  
+  
 
-function displayBar(x, value, label) {
-  // draw the bar for the specified value and label
-  fill(255, 0, 0);
-  rect(x, height - value, 50, value);
-  text(label, x, height - value - 10);
+
+function displayLollipop(x, y, barWidth, barHeight, color) {
+    fill(color);
+    strokeWeight(1);
+    //stroke(0, 0, 0);
+    
+    //line(x + barWidth / 2, y, x + barWidth / 2, y + barHeight);
+
+    ellipse(x + barWidth / 2, y - barHeight, 15, 12);
+
 }
+  
 
 
 
-
-
+  
 
